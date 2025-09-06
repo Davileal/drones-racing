@@ -1,19 +1,18 @@
-import { Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Injectable, signal } from '@angular/core';
 import { environment } from '../../../environments/environment';
 
 export type DroneStatus = 'idle' | 'running' | 'finished';
 export interface DroneVM {
   id: string;
   name: string;
-  status: DroneStatus;
-  currentStop: number; // 1..10
+  model: string;
+  photo: string;
+  status: 'idle' | 'running' | 'finished';
+  currentStop: number;
   progressPct: number;
   startedAt?: number;
   finishedAt?: number;
-  etaToNextMs?: number;
-  photo: string;
-  model: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -28,14 +27,13 @@ export class DronesService {
       const mapped: DroneVM[] = list.map((d) => ({
         id: d.id,
         name: d.name,
-        status: d.status,
-        model: d.model,
         photo: `/images/${d.id}.png`,
+        model: d.model,
+        status: d.status,
         currentStop: d.currentStop ?? 1,
         progressPct: Math.min(100, (((d.currentStop ?? 1) - 1) / 9) * 100),
         startedAt: d.startedAt,
         finishedAt: d.finishedAt,
-        etaToNextMs: undefined,
       }));
       this.drones.set(mapped);
     });
@@ -58,7 +56,7 @@ export class DronesService {
   attachStream(id: string) {
     const es = new EventSource(`${this.base}/drones/${id}/stream`);
     es.onmessage = (ev) => {
-      const data = JSON.parse(ev.data); // { stop, finished, etaToNextMs, startedAt, finishedAt }
+      const data = JSON.parse(ev.data);
       const progress = Math.min(100, ((data.stop - 1) / 9) * 100);
       this.updateDrone(id, {
         status: data.finished ? 'finished' : 'running',
@@ -66,7 +64,6 @@ export class DronesService {
         startedAt: data.startedAt ?? undefined,
         finishedAt: data.finished ? data.finishedAt : undefined,
         progressPct: progress,
-        etaToNextMs: data.etaToNextMs ?? undefined, // <-- alimenta o Game View
       });
     };
     es.onerror = () => es.close();

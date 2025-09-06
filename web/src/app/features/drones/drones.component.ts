@@ -9,7 +9,6 @@ import {
 } from '@angular/core';
 import { DronesService, type DroneVM } from './drones.service';
 import { DroneDetailsModalComponent } from './modal/drone-details-modal.component';
-import { DroneRaceGameComponent } from './drone-race-game.component';
 
 type LeaderboardItem = Readonly<{
   id: string;
@@ -23,7 +22,7 @@ type LeaderboardItem = Readonly<{
 @Component({
   selector: 'app-drones',
   standalone: true,
-  imports: [CommonModule, DroneDetailsModalComponent, DroneRaceGameComponent],
+  imports: [CommonModule, DroneDetailsModalComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './drones.component.html',
 })
@@ -63,31 +62,35 @@ export class DronesComponent implements OnInit {
    * It uses a stable sort by `originalIndex` if `finishedAt` is not available,
    * ensuring a consistent order for drones that have not finished.
    */
-  leaderboard() {
-    const list = this.service.drones(); // signal -> leitura reativa
+  readonly leaderboard = computed<LeaderboardItem[]>(() => {
+    const drones = this.service.drones();
 
-    // finished first, by total time asc
-    const finished = list
-      .filter((d) => d.status === 'finished' && d.startedAt != null && d.finishedAt != null)
-      .sort((a, b) => a.finishedAt! - a.startedAt! - (b.finishedAt! - b.startedAt!));
+    const finished = drones.filter(
+      (d) => d.status === DronesComponent.FINISHED_STATUS || d.finishedAt != null
+    );
 
-    // then running/idle, by stop desc; tie-breaker by name
-    const inRace = list
-      .filter((d) => d.status !== 'finished')
+    if (finished.length === 0) return [];
+
+    const sorted = finished
+      .map((d, index) => ({
+        id: d.id,
+        name: d.name,
+        stop: d.currentStop,
+        finishedAt: d.finishedAt,
+        originalIndex: index,
+      }))
       .sort((a, b) => {
-        if (b.currentStop !== a.currentStop) return b.currentStop - a.currentStop;
-        return a.name.localeCompare(b.name);
+        const aDone = a.finishedAt != null;
+        const bDone = b.finishedAt != null;
+        if (aDone && bDone) return a.finishedAt! - b.finishedAt!; // earlier finish ranks higher
+        if (aDone) return -1;
+        if (bDone) return 1;
+        // Neither has finishedAt -> keep stable by originalIndex
+        return a.originalIndex - b.originalIndex;
       });
 
-    const ordered = [...finished, ...inRace];
-
-    return ordered.map((d, i) => ({
-      id: d.id,
-      name: d.name,
-      stop: d.currentStop,
-      rank: i + 1,
-    }));
-  }
+    return sorted.map((item, idx) => ({ ...item, rank: idx + 1 }));
+  });
 
   readonly allFinished = computed<boolean>(() => {
     const list = this.service.drones();
