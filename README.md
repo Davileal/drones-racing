@@ -20,8 +20,8 @@ Each application is a workspace within the monorepo:
 
 ## System Requirements
 
-- Node.js 20+
-- npm 9+ (or your preferred package manager like `pnpm` or `yarn`)
+- Node.js 22+
+- npm 11+ (or your preferred package manager like `pnpm` or `yarn`)
 
 ## Getting Started
 

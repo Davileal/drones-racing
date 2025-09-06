@@ -10,8 +10,8 @@ A small Angular application that shows a live drone race (10 stops), lets you la
 - Gamified UI with emphasis on top positions
 
 ## Prerequisites
-- Node.js 20+ (LTS recommended)
-- npm 9+ or yarn
+- Node.js 22+ (LTS recommended)
+- npm 11+ or yarn
 - Angular CLI (global optional): `npm install -g @angular/cli`
 
 ## Quick setup

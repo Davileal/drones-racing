@@ -10,8 +10,8 @@ Drone racing simulator built with **NestJS + TypeScript**. Provides:
 
 ## Requirements
 
-* Node.js 20+
-* npm 9+
+* Node.js 22+
+* npm 11+
 
 
 ## Installation & Run
