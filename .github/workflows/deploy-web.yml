@@ -1,0 +1,50 @@
+name: Deploy Web
+on:
+  push:
+    branches: [main]
+    paths:
+      - "web/**"
+      - "package.json"
+      - "turbo.json"
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    env:
+      AWS_REGION: us-east-2
+      WEB_BUCKET: ${{ secrets.WEB_BUCKET }}
+      CF_DIST_ID: ${{ secrets.CF_DIST_ID }}
+      AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
+      APP_DIR: web
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: "npm" }
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Build web (Angular)
+        run: |
+          npx turbo run build --filter=web...
+          # If not using turbo: (cd web && npm run build)
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Sync to S3
+        run: |
+          aws s3 sync $APP_DIR/dist/ $WEB_BUCKET/ --delete
+        env:
+          WEB_BUCKET: s3://${{ env.WEB_BUCKET }}
+
+      - name: Invalidate CloudFront
+        if: env.CF_DIST_ID != ''
+        run: |
+          aws cloudfront create-invalidation --distribution-id "$CF_DIST_ID" --paths "/*"

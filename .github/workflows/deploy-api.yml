@@ -1,0 +1,48 @@
+name: Deploy API
+on:
+  push:
+    branches: [main]
+    paths:
+      - "api/**"
+      - "package.json"
+      - "turbo.json"
+      - ".github/workflows/deploy-api.yml"
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    env:
+      AWS_REGION: us-east-2
+      AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
+      ECR_REPO: ${{ secrets.ECR_REPO }}
+      IMAGE_TAG: latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: "npm" }
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to ECR
+        id: ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build & Push image
+        run: |
+          docker build -t $ECR_REPO:$IMAGE_TAG -f api/Dockerfile .
+          docker push $ECR_REPO:$IMAGE_TAG
+
+      - name: Trigger App Runner deployment
+        run: |
+          # Point service to the :latest tag and start deployment
+          SERVICE_ARN=$(aws apprunner list-services --query 'ServiceSummaryList[?ServiceName==`'${{ vars.APP_RUNNER_SERVICE_NAME }}`].ServiceArn' --output text)
+          aws apprunner update-service --service-arn "$SERVICE_ARN" \
+            --source-configuration ImageRepository="{ImageIdentifier=$ECR_REPO:$IMAGE_TAG,ImageRepositoryType=ECR,ImageConfiguration={Port=3000,RuntimeEnvironmentVariables=[{Name=NODE_ENV,Value=production}]}}"
+          aws apprunner start-deployment --service-arn "$SERVICE_ARN"
