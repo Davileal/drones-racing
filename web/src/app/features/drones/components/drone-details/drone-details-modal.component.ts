@@ -27,23 +27,18 @@ import { DronesService, type DroneVM } from '../../drones.service';
       role="dialog"
       aria-label="Drone details"
     >
-      <!-- Overlay -->
       <div class="absolute inset-0 bg-black/70 backdrop-blur-sm transition-opacity"></div>
-      <!-- Glows sutis no overlay -->
       <div class="pointer-events-none absolute -top-20 -left-16 h-72 w-72 rounded-full bg-indigo-600/20 blur-3xl"></div>
       <div class="pointer-events-none absolute -bottom-24 -right-16 h-80 w-80 rounded-full bg-teal-500/20 blur-3xl"></div>
 
-      <!-- Card -->
       <div
         class="relative z-10 w-full max-w-5xl overflow-hidden rounded-2xl border border-white/10 bg-white/5 shadow-2xl backdrop-blur"
         (click)="$event.stopPropagation()"
         role="document"
         aria-live="polite"
       >
-        <!-- efeito conic interno -->
         <div class="pointer-events-none absolute inset-0 -z-10 opacity-70 bg-[conic-gradient(at_70%_10%,rgba(99,102,241,0.12),transparent_30%,rgba(20,184,166,0.12),transparent_60%)]"></div>
 
-        <!-- botão fechar -->
         <button
           class="absolute top-4 right-4 z-20 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-white/10 text-gray-200 ring-1 ring-white/15 transition hover:bg-white/20 hover:scale-105 focus:outline-none focus:ring-4 focus:ring-indigo-300/30"
           (click)="close.emit()"
@@ -61,9 +56,7 @@ import { DronesService, type DroneVM } from '../../drones.service';
           </svg>
         </button>
 
-        <!-- conteúdo -->
         <div class="grid grid-cols-1 gap-8 p-6 pr-6 pl-6 lg:grid-cols-3 lg:p-8">
-          <!-- imagem / modelo -->
           <div class="lg:col-span-1 flex flex-col items-center justify-start gap-5">
             <div
               class="relative flex h-56 w-56 items-center justify-center overflow-hidden rounded-2xl bg-white/5 ring-1 ring-white/10 shadow-xl"
@@ -81,11 +74,9 @@ import { DronesService, type DroneVM } from '../../drones.service';
               >
                 {{ drone()!.model }}
               </div>
-              <!-- brilho sutil -->
               <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
             </div>
 
-            <!-- chips rápidos: stop e status -->
             <div class="flex flex-wrap items-center justify-center gap-3">
               <div
                 class="inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-medium ring-1"
@@ -118,14 +109,12 @@ import { DronesService, type DroneVM } from '../../drones.service';
             </div>
           </div>
 
-          <!-- detalhes -->
           <div class="lg:col-span-2 space-y-6">
             <div class="flex items-start justify-between gap-6">
               <div class="flex-1">
                 <div class="text-xs uppercase tracking-wide text-gray-400">Pilot / Name</div>
                 <div class="mt-1 text-3xl font-extrabold tracking-tight text-white">{{ drone()!.name }}</div>
 
-                <!-- grid de specs simples (exemplo com o que temos) -->
                 <div class="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3">
                   <div class="rounded-xl border border-white/10 bg-white/5 p-3">
                     <div class="text-xs text-gray-400">Status</div>
@@ -161,7 +150,6 @@ import { DronesService, type DroneVM } from '../../drones.service';
               </div>
             </div>
 
-            <!-- rodapé -->
             <div class="flex items-center justify-between border-t border-white/10 pt-4">
               <div class="text-xs text-gray-400">Press <span class="rounded bg-white/10 px-1 py-0.5 text-[10px] text-gray-200 ring-1 ring-white/15">Esc</span> or click outside to close</div>
               <button

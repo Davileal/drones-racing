@@ -20,7 +20,6 @@ describe('DroneDetailsModalComponent', () => {
 
   beforeEach(waitForAsync(() => {
     mockSvc = {
-      // start empty; tests will set as needed
       drones: signal<DroneVM[]>([]),
     } as any;
 
@@ -44,7 +43,6 @@ describe('DroneDetailsModalComponent', () => {
   });
 
   it('renders drone details when droneId matches a drone in service', () => {
-    // populate service and set input id
     (mockSvc.drones as any).set([sample]);
     component.droneId = 'd1';
     fixture.detectChanges();
@@ -54,7 +52,6 @@ describe('DroneDetailsModalComponent', () => {
     expect(host.textContent).toContain(sample.model);
     expect(host.textContent).toContain(`Stop ${sample.currentStop} / 10`);
     expect(host.textContent).toContain(`${sample.progressPct}%`);
-    // dialog should be present
     expect(host.querySelector('[role="dialog"]')).toBeTruthy();
   });
 
@@ -64,7 +61,6 @@ describe('DroneDetailsModalComponent', () => {
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('50%');
 
-    // update progress in service signal
     (mockSvc.drones as any).set([
       { ...sample, progressPct: 78, currentStop: 8, status: 'running' },
     ]);

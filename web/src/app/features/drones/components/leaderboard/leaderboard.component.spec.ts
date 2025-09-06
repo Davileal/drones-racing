@@ -37,7 +37,6 @@ describe('LeaderboardComponent', () => {
     expect(html.textContent).toContain('#1');
 
     spyOn(component.select, 'emit');
-    // clica no primeiro card do top (rank 1)
     const clickable = fixture.debugElement.query(By.css('[role="button"]'));
     clickable.triggerEventHandler('click', {});
     expect(component.select.emit).toHaveBeenCalledWith('d1');
