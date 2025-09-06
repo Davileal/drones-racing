@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { signal } from '@angular/core';
 import { DroneDetailsModalComponent } from './drone-details-modal.component';
-import { DronesService, type DroneVM } from '../drones.service';
+import { DronesService, type DroneVM } from '../../drones.service';
 
 describe('DroneDetailsModalComponent', () => {
   let fixture: ComponentFixture<DroneDetailsModalComponent>;

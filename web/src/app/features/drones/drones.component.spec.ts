@@ -3,9 +3,10 @@ import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { DronesComponent } from './drones.component';
 import { DronesService, DroneVM } from './drones.service';
 
-describe('DronesComponent', () => {
+describe('DronesComponent (container)', () => {
   let fixture: ComponentFixture<DronesComponent>;
   let component: DronesComponent;
+
   let mockSvc: Partial<DronesService> & {
     loadList: jasmine.Spy;
     launch: jasmine.Spy;
@@ -23,7 +24,6 @@ describe('DronesComponent', () => {
             id: 'd1',
             name: 'Falcon',
             model: 'F-1',
-            photo: '/assets/images/d01.png',
             status: 'idle',
             currentStop: 0,
             progressPct: 0,
@@ -32,7 +32,6 @@ describe('DronesComponent', () => {
             id: 'd2',
             name: 'Aurora',
             model: 'A-7',
-            photo: '/assets/images/d02.png',
             status: 'idle',
             currentStop: 0,
             progressPct: 0,
@@ -66,7 +65,7 @@ describe('DronesComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('calls loadList on init', () => {
+  it('calls loadList on init and populates drones', () => {
     fixture.detectChanges();
     expect(mockSvc.loadList).toHaveBeenCalled();
     expect((mockSvc.drones as any)().length).toBeGreaterThan(0);
@@ -75,17 +74,16 @@ describe('DronesComponent', () => {
   it('openModal / closeModal set selectedDroneId', () => {
     component.openModal('d1');
     expect(component.selectedDroneId()).toBe('d1');
-
     component.closeModal();
     expect(component.selectedDroneId()).toBeNull();
   });
 
-  it('launch clears winnerId and calls service.launch', () => {
+  it('launch calls service.launch', () => {
     component.launch('d1');
     expect(mockSvc.launch).toHaveBeenCalledWith('d1');
   });
 
-  it('launchAll clears winnerId and calls service.launchAll', () => {
+  it('launchAll calls service.launchAll', () => {
     component.launchAll();
     expect(mockSvc.launchAll).toHaveBeenCalled();
   });
@@ -98,25 +96,26 @@ describe('DronesComponent', () => {
       {
         id: 'd1',
         name: 'Falcon',
-        model: 'F-1',
-        photo: '/assets/images/d01.png',
         status: 'finished',
+        model: 'DJI Mini 4 Pro',
+        photo: 'images/d1.png',
         currentStop: 10,
         progressPct: 100,
         finishedAt: 2000,
+        startedAt: 0,
       },
       {
         id: 'd2',
         name: 'Aurora',
-        model: 'A-7',
-        photo: '/assets/images/d02.png',
+        model: 'DJI Neo Standard',
+        photo: 'images/d2.png',
         status: 'finished',
         currentStop: 10,
         progressPct: 100,
         finishedAt: 3000,
+        startedAt: 0,
       },
     ];
-
     (mockSvc.drones as any).set(finished);
 
     const lb = component.leaderboard();
@@ -134,13 +133,13 @@ describe('DronesComponent', () => {
         id: 'd1',
         name: 'Winner',
         status: 'finished',
-        finishedAt: 1000,
         currentStop: 10,
         progressPct: 100,
+        finishedAt: 1000,
+        startedAt: 0,
       },
     ]);
     fixture.detectChanges();
-
     expect(component.winnerId()).toBe('d1');
   });
 });

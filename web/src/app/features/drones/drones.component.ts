@@ -7,22 +7,25 @@ import {
   OnInit,
   signal,
 } from '@angular/core';
-import { DronesService, type DroneVM } from './drones.service';
-import { DroneDetailsModalComponent } from './modal/drone-details-modal.component';
-
-type LeaderboardItem = Readonly<{
-  id: string;
-  name: string;
-  stop: number;
-  finishedAt?: number;
-  originalIndex: number;
-  rank: number;
-}>;
+import { DroneCardComponent } from './components/drone-card/drone-card.component';
+import { DroneDetailsModalComponent } from './components/drone-details/drone-details-modal.component';
+import {
+  LeaderboardComponent,
+  type LeaderboardItem,
+} from './components/leaderboard/leaderboard.component';
+import { StatusBannerComponent } from './components/status-banner/status-banner.component';
+import { DronesService } from './drones.service';
 
 @Component({
   selector: 'app-drones',
   standalone: true,
-  imports: [CommonModule, DroneDetailsModalComponent],
+  imports: [
+    CommonModule,
+    DroneDetailsModalComponent,
+    StatusBannerComponent,
+    DroneCardComponent,
+    LeaderboardComponent,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './drones.component.html',
 })
@@ -31,21 +34,13 @@ export class DronesComponent implements OnInit {
   private static readonly FINISHED_STATUS = 'finished' as const;
   private readonly service = inject(DronesService);
 
-  private static readonly PALETTE = [
-    'bg-blue-600',
-    'bg-emerald-600',
-    'bg-rose-600',
-    'bg-amber-600',
-  ] as const;
-
-  readonly colorDots: readonly string[] = DronesComponent.PALETTE;
-  readonly markerBg: readonly string[] = DronesComponent.PALETTE;
   readonly stops: number[] = Array.from({ length: DronesComponent.TOTAL_STOPS }, (_, i) => i + 1);
   readonly selectedDroneId = signal<string | null>(null);
 
   openModal(id: string): void {
     this.selectedDroneId.set(id);
   }
+
   closeModal(): void {
     this.selectedDroneId.set(null);
   }
@@ -54,53 +49,30 @@ export class DronesComponent implements OnInit {
     return this.service.drones();
   }
 
-  /**
-   * Computes a sorted leaderboard of finished drones.
-   *
-   * This computed signal filters for drones that have completed the race,
-   * sorts them by their finish time (earliest first), and assigns a rank.
-   * It uses a stable sort by `originalIndex` if `finishedAt` is not available,
-   * ensuring a consistent order for drones that have not finished.
-   */
   readonly leaderboard = computed<LeaderboardItem[]>(() => {
     const drones = this.service.drones();
 
-    const finished = drones.filter(
-      (d) => d.status === DronesComponent.FINISHED_STATUS || d.finishedAt != null
-    );
+    const finished = drones
+      .filter(
+        (d) =>
+          d.status === DronesComponent.FINISHED_STATUS &&
+          d.startedAt != null &&
+          d.finishedAt != null
+      )
+      .sort((a, b) => a.finishedAt! - a.startedAt! - (b.finishedAt! - b.startedAt!));
 
-    if (finished.length === 0) return [];
-
-    const sorted = finished
-      .map((d, index) => ({
-        id: d.id,
-        name: d.name,
-        stop: d.currentStop,
-        finishedAt: d.finishedAt,
-        originalIndex: index,
-      }))
-      .sort((a, b) => {
-        const aDone = a.finishedAt != null;
-        const bDone = b.finishedAt != null;
-        if (aDone && bDone) return a.finishedAt! - b.finishedAt!; // earlier finish ranks higher
-        if (aDone) return -1;
-        if (bDone) return 1;
-        // Neither has finishedAt -> keep stable by originalIndex
-        return a.originalIndex - b.originalIndex;
-      });
-
-    return sorted.map((item, idx) => ({ ...item, rank: idx + 1 }));
+    return finished.map((d, i) => ({ id: d.id, name: d.name, stop: d.currentStop, rank: i + 1 }));
   });
 
   readonly allFinished = computed<boolean>(() => {
     const list = this.service.drones();
-    if (list.length === 0) return false;
-
-    return list.every(
-      (d) =>
-        d.status === DronesComponent.FINISHED_STATUS ||
-        d.finishedAt != null ||
-        (d.currentStop ?? 0) >= DronesComponent.TOTAL_STOPS
+    return (
+      list.length > 0 &&
+      list.every(
+        (d) =>
+          d.status === DronesComponent.FINISHED_STATUS ||
+          (d.currentStop ?? 0) >= DronesComponent.TOTAL_STOPS
+      )
     );
   });
 
@@ -125,28 +97,8 @@ export class DronesComponent implements OnInit {
     this.service.loadList();
   }
 
-  // ——— Template utilities ———
-
-  percent(d: DroneVM): string {
-    const pct = Math.max(0, Math.min(100, d.progressPct));
-    // Keep the small offset you had; expose as calc()
-    return `calc(${pct}% - 1rem)`;
-  }
-
-  stopPct(stop: number): number {
-    return Math.min(100, (stop / DronesComponent.TOTAL_STOPS) * 100);
-  }
-
   displayName(id: string): string {
     const drone = this.service.drones().find((x) => x.id === id);
     return drone?.name ?? id;
   }
-
-  colorFor(d: DroneVM): string {
-    const idx = this.service.drones().findIndex((x) => x.id === d.id);
-    const safe = idx >= 0 ? idx % this.colorDots.length : 0;
-    return this.colorDots[safe] ?? '';
-  }
-
-  readonly trackById = (_: number, item: { id: string }) => item.id;
 }
