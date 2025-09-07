@@ -48,6 +48,10 @@ This will use Turborepo to run the `start` script for each application in parall
 - The **API** will be available at `http://localhost:3000`.
 - The **Web UI** will be available at `http://localhost:4200`.
 
+To log in to the application, use the following credentials for demonstration purposes:
+- **Username:** `rafterhome`
+- **Password:** `rafterhome123`
+
 ## Screenshots
 
 <img src="docs/screenshot-1.png" alt="Drone Racing UI - Drones View">

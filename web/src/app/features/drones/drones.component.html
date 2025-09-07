@@ -45,7 +45,8 @@
           [winnerName]="winId ? displayName(winId) : undefined"
         ></app-status-banner>
 
-        @let drones = getDrones; @let lb = leaderboard();
+        @let drones = getDrones;
+        @let lb = leaderboard();
 
         <div class="grid gap-8 lg:grid-cols-3 items-start">
           <!-- Drone cards -->

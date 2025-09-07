@@ -24,7 +24,6 @@ describe("DronesController", () => {
       getAll: jest.fn().mockReturnValue([mockDrone]),
       getById: jest.fn().mockReturnValue(mockDrone),
       launch: jest.fn().mockReturnValue({ ...mockDrone, status: "running" }),
-      getWinner: jest.fn().mockReturnValue({}),
       on: jest.fn().mockImplementation((_id: string, cb: (p: any) => void) => {
         return () => {};
       }),
@@ -88,10 +87,4 @@ describe("DronesController", () => {
     expect(svc.on).toHaveBeenCalledWith("d1", expect.any(Function));
   });
 
-  it("winner() should return service.allFinished result", () => {
-    (svc.getWinner as jest.Mock).mockReturnValue({ winnerId: "d2" });
-    const res = controller.getWinner();
-    expect(svc.getWinner).toHaveBeenCalled();
-    expect(res).toEqual({ winnerId: "d2" });
-  });
 });

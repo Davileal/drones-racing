@@ -15,6 +15,7 @@ import {
 } from './components/leaderboard/leaderboard.component';
 import { StatusBannerComponent } from './components/status-banner/status-banner.component';
 import { DronesService } from './drones.service';
+import { DroneStatus } from './models/drone-status.enum';
 
 @Component({
   selector: 'app-drones',
@@ -31,37 +32,27 @@ import { DronesService } from './drones.service';
 })
 export class DronesComponent implements OnInit {
   private static readonly TOTAL_STOPS = 10;
-  private static readonly FINISHED_STATUS = 'finished' as const;
   private readonly service = inject(DronesService);
 
+  readonly DroneStatus = DroneStatus;
   readonly stops: number[] = Array.from({ length: DronesComponent.TOTAL_STOPS }, (_, i) => i + 1);
   readonly selectedDroneId = signal<string | null>(null);
-
-  openModal(id: string): void {
-    this.selectedDroneId.set(id);
-  }
-
-  closeModal(): void {
-    this.selectedDroneId.set(null);
-  }
-
-  get getDrones() {
-    return this.service.drones();
-  }
 
   readonly leaderboard = computed<LeaderboardItem[]>(() => {
     const drones = this.service.drones();
 
     const finished = drones
       .filter(
-        (d) =>
-          d.status === DronesComponent.FINISHED_STATUS &&
-          d.startedAt != null &&
-          d.finishedAt != null
+        (d) => d.status === DroneStatus.Finished && d.startedAt != null && d.finishedAt != null
       )
       .sort((a, b) => a.finishedAt! - a.startedAt! - (b.finishedAt! - b.startedAt!));
 
-    return finished.map((d, i) => ({ id: d.id, name: d.name, stop: d.currentStop, rank: i + 1 }));
+    return finished.map((d, i) => ({
+      id: d.id,
+      name: d.name,
+      stop: d.currentStop,
+      rank: i + 1,
+    }));
   });
 
   readonly allFinished = computed<boolean>(() => {
@@ -70,8 +61,7 @@ export class DronesComponent implements OnInit {
       list.length > 0 &&
       list.every(
         (d) =>
-          d.status === DronesComponent.FINISHED_STATUS ||
-          (d.currentStop ?? 0) >= DronesComponent.TOTAL_STOPS
+          d.status === DroneStatus.Finished || (d.currentStop ?? 0) >= DronesComponent.TOTAL_STOPS
       )
     );
   });
@@ -85,6 +75,18 @@ export class DronesComponent implements OnInit {
     this.service.loadList();
   }
 
+  openModal(id: string): void {
+    this.selectedDroneId.set(id);
+  }
+
+  closeModal(): void {
+    this.selectedDroneId.set(null);
+  }
+
+  get getDrones() {
+    return this.service.drones();
+  }
+
   launch(id: string): void {
     this.service.launch(id);
   }
@@ -93,12 +95,8 @@ export class DronesComponent implements OnInit {
     this.service.launchAll();
   }
 
-  reload(): void {
-    this.service.loadList();
-  }
-
   displayName(id: string): string {
-    const drone = this.service.drones().find((x) => x.id === id);
+    const drone = this.service.drones().find((item) => item.id === id);
     return drone?.name ?? id;
   }
 }

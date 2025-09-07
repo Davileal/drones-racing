@@ -1,7 +1,9 @@
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { signal } from '@angular/core';
 import { DroneDetailsModalComponent } from './drone-details-modal.component';
-import { DronesService, type DroneVM } from '../../drones.service';
+import { DronesService } from '../../drones.service';
+import { DroneVM } from '../../models/drone.vm';
+import { DroneStatus } from '../../models/drone-status.enum';
 
 describe('DroneDetailsModalComponent', () => {
   let fixture: ComponentFixture<DroneDetailsModalComponent>;
@@ -13,7 +15,7 @@ describe('DroneDetailsModalComponent', () => {
     name: 'Falcon X',
     model: 'FX-1',
     photo: '/assets/images/d01.png',
-    status: 'running',
+    status: DroneStatus.Running,
     currentStop: 5,
     progressPct: 50,
   };

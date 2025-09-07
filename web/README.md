@@ -35,6 +35,10 @@ A small Angular application that shows a live drone race (10 stops), lets you la
    ```
    Open http://localhost:4200
 
+To log in to the application, use the following credentials for demonstration purposes:
+- **Username:** `rafterhome`
+- **Password:** `rafterhome123`
+
 ## Available scripts
 - `ng serve` — start dev server
 - `ng build` — production build (artifacts in `dist/`)

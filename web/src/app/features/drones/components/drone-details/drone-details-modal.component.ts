@@ -9,7 +9,8 @@ import {
   Output,
   signal,
 } from '@angular/core';
-import { DronesService, type DroneVM } from '../../drones.service';
+import { DronesService } from '../../drones.service';
+import { DroneVM } from '../../models/drone.vm';
 
 @Component({
   selector: 'app-drone-modal',

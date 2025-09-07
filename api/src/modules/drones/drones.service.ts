@@ -193,16 +193,6 @@ export class DronesService {
     return { ...drone };
   }
 
-  public getWinner(): { winnerId?: string } {
-    const all = Array.from(this.drones.values());
-    const finished = all.filter((d) => d.status === "finished");
-    if (finished.length < this.drones.size) return {};
-    const winner = finished.reduce((a, b) =>
-      a.finishedAt! - a.startedAt! <= b.finishedAt! - b.startedAt! ? a : b
-    );
-    return { winnerId: winner.id };
-  }
-
   // ---------- Helpers ----------
   private scheduleTimer(id: string, fn: () => void, delayMs: number): void {
     const state = this.sim.get(id)!;

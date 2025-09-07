@@ -60,30 +60,4 @@ describe("DronesService", () => {
     expect(second).toStrictEqual(first);
   });
 
-  it("getWinner() should return winnerId when all finished", () => {
-    // mark all drones finished with different durations
-    const d1 = svc.getById("d1");
-    const d2 = svc.getById("d2");
-    const d3 = svc.getById("d3");
-    const d4 = svc.getById("d4");
-
-    d1.status = "finished";
-    d1.startedAt = 0;
-    d1.finishedAt = 5000; // duration 5s
-
-    d2.status = "finished";
-    d2.startedAt = 0;
-    d2.finishedAt = 3000; // duration 3s -> winner
-
-    d3.status = "finished";
-    d3.startedAt = 0;
-    d3.finishedAt = 8000;
-
-    d4.status = "finished";
-    d4.startedAt = 0;
-    d4.finishedAt = 10000;
-
-    const res = svc.getWinner();
-    expect(res).toHaveProperty("winnerId", "d2");
-  });
 });

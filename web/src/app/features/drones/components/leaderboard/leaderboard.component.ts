@@ -36,6 +36,7 @@ export type LeaderboardItem = Readonly<{
             <div
               class="flex items-center gap-4 p-4 rounded-xl transition-all duration-300 ring-1 cursor-pointer hover:bg-white/20 hover:ring-white/25 hover:-translate-y-1"
               [class.bg-white/10]="item.rank === 1"
+              [class.bg-yellow-400/10]="item.rank === 1" 
               [class.ring-yellow-300/30]="item.rank === 1"
               [class.shadow-2xl]="item.rank === 1"
               [class.scale-105]="item.rank === 1"

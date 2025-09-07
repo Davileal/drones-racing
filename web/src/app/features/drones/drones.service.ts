@@ -1,76 +1,101 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, signal } from '@angular/core';
 import { environment } from '../../../environments/environment';
-
-export type DroneStatus = 'idle' | 'running' | 'finished';
-export interface DroneVM {
-  id: string;
-  name: string;
-  model: string;
-  photo: string;
-  status: 'idle' | 'running' | 'finished';
-  currentStop: number;
-  progressPct: number;
-  startedAt?: number;
-  finishedAt?: number;
-}
+import { DroneStatus } from './models/drone-status.enum';
+import { DroneVM } from './models/drone.vm';
+import { DroneDto } from './models/drone.dto';
 
 @Injectable({ providedIn: 'root' })
 export class DronesService {
-  private base = environment.API_BASE;
-  drones = signal<DroneVM[]>([]);
+  private readonly base = environment.API_BASE;
+  private readonly TOTAL_STOPS = 10;
+
+  readonly drones = signal<DroneVM[]>([]);
 
   constructor(private http: HttpClient) {}
 
-  loadList() {
-    this.http.get<any[]>(`${this.base}/drones`).subscribe((list) => {
-      const mapped: DroneVM[] = list.map((d) => ({
-        id: d.id,
-        name: d.name,
-        photo: `/images/${d.id}.png`,
-        model: d.model,
-        status: d.status,
-        currentStop: d.currentStop ?? 1,
-        progressPct: Math.min(100, (((d.currentStop ?? 1) - 1) / 9) * 100),
-        startedAt: d.startedAt,
-        finishedAt: d.finishedAt,
-      }));
+  public loadList(): void {
+    this.http.get<DroneDto[]>(`${this.base}/drones`).subscribe((list) => {
+      const mapped = list.map((d) => this.toVM(d));
       this.drones.set(mapped);
     });
   }
 
-  launch(id: string) {
+  public launch(id: string): void {
     this.http.post(`${this.base}/drones/${id}/launch`, {}).subscribe(() => {
       this.attachStream(id);
     });
   }
 
-  launchAll() {
+  public launchAll(): void {
     this.drones().forEach((d) => this.launch(d.id));
   }
 
-  private updateDrone(id: string, patch: Partial<DroneVM>) {
-    this.drones.update((list) => list.map((d) => (d.id !== id ? d : { ...d, ...patch })));
+  private toVM(dto: DroneDto): DroneVM {
+    const currentStop = dto.currentStop ?? 1;
+    const progressPct = Math.min(
+      100,
+      Math.max(0, ((currentStop - 1) / (this.TOTAL_STOPS - 1)) * 100)
+    );
+    return {
+      id: dto.id,
+      name: dto.name,
+      model: dto.model,
+      photo: `/images/${dto.id}.png`,
+      status: this.normalizeStatus(dto.status),
+      currentStop,
+      progressPct,
+      startedAt: dto.startedAt,
+      finishedAt: dto.finishedAt,
+    };
   }
 
-  attachStream(id: string) {
+  private normalizeStatus(s: DroneDto['status']): DroneStatus {
+    switch (s) {
+      case DroneStatus.Idle:
+      case 'idle':
+        return DroneStatus.Idle;
+      case DroneStatus.Running:
+      case 'running':
+        return DroneStatus.Running;
+      case DroneStatus.Finished:
+      case 'finished':
+        return DroneStatus.Finished;
+      default:
+        return DroneStatus.Idle;
+    }
+  }
+
+  private updateDrone(id: string, patch: Partial<DroneVM>) {
+    this.drones.update((list) => list.map((d) => (d.id === id ? { ...d, ...patch } : d)));
+  }
+
+  private attachStream(id: string): void {
     const es = new EventSource(`${this.base}/drones/${id}/stream`);
     es.onmessage = (ev) => {
-      const data = JSON.parse(ev.data);
-      const progress = Math.min(100, ((data.stop - 1) / 9) * 100);
+      const data = JSON.parse(ev.data) as {
+        stop: number;
+        finished: boolean;
+        startedAt?: number;
+        finishedAt?: number;
+        etaToNextMs?: number;
+      };
+
+      const stop = Math.max(1, Math.min(this.TOTAL_STOPS, data.stop));
+      const progressPct = Math.min(100, Math.max(0, ((stop - 1) / (this.TOTAL_STOPS - 1)) * 100));
+
       this.updateDrone(id, {
-        status: data.finished ? 'finished' : 'running',
-        currentStop: data.stop,
+        status: data.finished ? DroneStatus.Finished : DroneStatus.Running,
+        currentStop: stop,
         startedAt: data.startedAt ?? undefined,
         finishedAt: data.finished ? data.finishedAt : undefined,
-        progressPct: progress,
+        progressPct,
       });
+
+      if (data.finished) {
+        es.close();
+      }
     };
     es.onerror = () => es.close();
-  }
-
-  async pollWinner(): Promise<string | undefined> {
-    const r: any = await fetch(`${this.base}/drones/race/winner`).then((r) => r.json());
-    return r.winnerId;
   }
 }

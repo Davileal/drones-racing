@@ -29,7 +29,6 @@ npm run start:dev
 
 * **Simulation**: each drone runs through 10 stops (1→10). Total race time is randomly chosen between **10 and 40s**. The service divides this into legs and advances `currentStop` with `setTimeout`.
 * **Live Update**: endpoint `GET /drones/:id/stream` uses **SSE** (`text/event-stream`) and sends events `{ stop, finished, startedAt, finishedAt }`.
-* **Winner**: `GET /drones/race/winner` returns `{ winnerId }` once **all** drones finish.
 
 
 ## Endpoints
@@ -71,9 +70,3 @@ npm run start:dev
 ```
 
 * Nest sets headers: `Content-Type: text/event-stream`, `Cache-Control: no-cache`, `Connection: keep-alive`.
-
-### 5) Winner
-
-`GET /drones/race/winner`
-
-* When all 4 finish, returns `{ "winnerId": "d3" }`.

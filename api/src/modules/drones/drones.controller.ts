@@ -16,12 +16,6 @@ import { DroneEvent, DronesService } from "./drones.service";
 export class DronesController {
   constructor(private readonly service: DronesService) {}
 
-  @Get("race/winner")
-  @UseGuards(AuthGuard)
-  public getWinner() {
-    return this.service.getWinner();
-  }
-
   @Get()
   @UseGuards(AuthGuard)
   public getAll() {

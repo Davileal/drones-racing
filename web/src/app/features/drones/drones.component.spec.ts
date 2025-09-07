@@ -1,7 +1,9 @@
 import { NO_ERRORS_SCHEMA, signal } from '@angular/core';
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { DronesComponent } from './drones.component';
-import { DronesService, DroneVM } from './drones.service';
+import { DronesService } from './drones.service';
+import { DroneVM } from './models/drone.vm';
+import { DroneStatus } from './models/drone-status.enum';
 
 describe('DronesComponent (container)', () => {
   let fixture: ComponentFixture<DronesComponent>;
@@ -11,7 +13,6 @@ describe('DronesComponent (container)', () => {
     loadList: jasmine.Spy;
     launch: jasmine.Spy;
     launchAll: jasmine.Spy;
-    pollWinner: jasmine.Spy;
     drones: ReturnType<typeof signal> | any;
   };
 
@@ -41,14 +42,15 @@ describe('DronesComponent (container)', () => {
       launch: jasmine.createSpy('launch').and.callFake((id: string) => {
         const list = (mockSvc.drones as any)();
         (mockSvc.drones as any).set(
-          list.map((d: DroneVM) => (d.id === id ? { ...d, status: 'running' } : d))
+          list.map((d: DroneVM) => (d.id === id ? { ...d, status: DroneStatus.Running } : d))
         );
       }),
       launchAll: jasmine.createSpy('launchAll').and.callFake(() => {
         const list = (mockSvc.drones as any)();
-        (mockSvc.drones as any).set(list.map((d: DroneVM) => ({ ...d, status: 'running' })));
+        (mockSvc.drones as any).set(
+          list.map((d: DroneVM) => ({ ...d, status: DroneStatus.Running }))
+        );
       }),
-      pollWinner: jasmine.createSpy('pollWinner').and.returnValue(Promise.resolve(undefined)),
     };
 
     TestBed.configureTestingModule({
@@ -96,7 +98,7 @@ describe('DronesComponent (container)', () => {
       {
         id: 'd1',
         name: 'Falcon',
-        status: 'finished',
+        status: DroneStatus.Finished,
         model: 'DJI Mini 4 Pro',
         photo: 'images/d1.png',
         currentStop: 10,
@@ -109,7 +111,7 @@ describe('DronesComponent (container)', () => {
         name: 'Aurora',
         model: 'DJI Neo Standard',
         photo: 'images/d2.png',
-        status: 'finished',
+        status: DroneStatus.Finished,
         currentStop: 10,
         progressPct: 100,
         finishedAt: 3000,

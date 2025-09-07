@@ -24,7 +24,7 @@ resource "aws_s3_bucket_public_access_block" "web" {
   restrict_public_buckets = false
 }
 
-# Ownership & versioning (optional)
+# Ownership & versioning
 resource "aws_s3_bucket_ownership_controls" "web" {
   bucket = aws_s3_bucket.web.id
   rule { object_ownership = "BucketOwnerPreferred" }
