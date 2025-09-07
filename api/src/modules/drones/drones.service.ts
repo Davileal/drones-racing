@@ -1,31 +1,12 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
+import { DroneStatus } from "./models/drone-status.enum";
+import { Drone, DroneEvent } from "./models/drone.model";
 
 export const NUM_STOPS = 10;
 export const MIN_TOTAL_MS = 10_000; // 10s
 export const MAX_TOTAL_MS = 40_000; // 40s
 export const FIRST_STOP = 1;
 export const LAST_STOP = NUM_STOPS;
-
-export type DroneStatus = "idle" | "running" | "finished";
-
-export interface Drone {
-  id: string;
-  name: string;
-  model: string;
-  status: DroneStatus;
-  currentStop: number; // 1..10
-  totalMs?: number;
-  startedAt?: number;
-  finishedAt?: number;
-}
-
-export interface DroneEvent {
-  stop: number;
-  finished: boolean;
-  etaToNextMs?: number;
-  startedAt?: number;
-  finishedAt?: number;
-}
 
 type Listener = (payload: DroneEvent) => void;
 
@@ -43,7 +24,7 @@ export class DronesService {
         id: "d1",
         name: "Falcon",
         model: "DJI Mini 4 Pro",
-        status: "idle",
+        status: DroneStatus.Idle,
         currentStop: FIRST_STOP,
       },
     ],
@@ -53,7 +34,7 @@ export class DronesService {
         id: "d2",
         name: "Wasp",
         model: "DJI Neo Standard",
-        status: "idle",
+        status: DroneStatus.Idle,
         currentStop: FIRST_STOP,
       },
     ],
@@ -63,7 +44,7 @@ export class DronesService {
         id: "d3",
         name: "Hornet",
         model: "DJI Agras T25",
-        status: "idle",
+        status: DroneStatus.Idle,
         currentStop: FIRST_STOP,
       },
     ],
@@ -73,7 +54,7 @@ export class DronesService {
         id: "d4",
         name: "Raven",
         model: "DJI Inspire 3",
-        status: "idle",
+        status: DroneStatus.Idle,
         currentStop: FIRST_STOP,
       },
     ],
@@ -118,8 +99,8 @@ export class DronesService {
     for (const fn of set) {
       try {
         fn(payload);
-      } catch {
-        /* não derrubar outros listeners */
+      } catch (err) {
+        console.error(err);
       }
     }
   }
@@ -134,10 +115,9 @@ export class DronesService {
       return drone;
     }
 
-    // security reset if there was already a timer hanging
     this.stopTimer(id);
 
-    drone.status = "running";
+    drone.status = DroneStatus.Running;
     drone.currentStop = FIRST_STOP;
     drone.startedAt = Date.now();
     drone.finishedAt = undefined;
@@ -145,8 +125,6 @@ export class DronesService {
     const totalMs = this.randomInt(MIN_TOTAL_MS, MAX_TOTAL_MS);
     drone.totalMs = totalMs;
 
-    // Distributes time between 9 legs (stops 1 → 10). Here I use normalized random weights
-    // to look more “organic” than equal slices.
     const legCount = NUM_STOPS - 1;
     const legs = this.randomLegs(totalMs, legCount);
 
@@ -162,7 +140,7 @@ export class DronesService {
     let nextStop = FIRST_STOP + 1;
     const runLeg = (legIdx: number) => {
       if (nextStop > LAST_STOP) {
-        drone.status = "finished";
+        drone.status = DroneStatus.Finished;
         drone.finishedAt = Date.now();
         this.emit(id, {
           stop: LAST_STOP,
@@ -193,7 +171,6 @@ export class DronesService {
     return { ...drone };
   }
 
-  // ---------- Helpers ----------
   private scheduleTimer(id: string, fn: () => void, delayMs: number): void {
     const state = this.sim.get(id)!;
     state.timer = setTimeout(fn, delayMs);

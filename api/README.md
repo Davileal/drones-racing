@@ -30,6 +30,9 @@ npm run start:dev
 * **Simulation**: each drone runs through 10 stops (1→10). Total race time is randomly chosen between **10 and 40s**. The service divides this into legs and advances `currentStop` with `setTimeout`.
 * **Live Update**: endpoint `GET /drones/:id/stream` uses **SSE** (`text/event-stream`) and sends events `{ stop, finished, startedAt, finishedAt }`.
 
+## API Documentation (Swagger)
+This project uses Swagger (OpenAPI) to provide interactive API documentation. Once the development server is running, you can access the Swagger UI at: `http://localhost:3000/docs`. The UI allows you to explore all the available endpoints, see their parameters, and test them directly from the browser.
+
 
 ## Endpoints
 
