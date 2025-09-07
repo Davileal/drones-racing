@@ -9,8 +9,8 @@
     "test": "turbo run test"
   },
   "workspaces": [
-    "api",
-    "web"
+    "apps/api",
+    "apps/web"
   ],
   "packageManager": "npm@11.5.2",
   "devDependencies": {
